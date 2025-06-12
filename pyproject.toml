@@ -6,7 +6,13 @@ build-backend = "setuptools.build_meta"
 name = "motie-wijzer"
 version = "0.1.0"
 dependencies = [
-  "typer>=0.14.0"
+  "colorama>=0.4.6",
+  "pandas>=2.3.0",
+  "progress>=1.6",
+  "python-dateutil>=2.9.0.post0",
+  "pytz>=2025.2",
+  "tkapi>=0.9.8",
+  "typer>=0.16.0"
 ]
 
 [project.scripts]

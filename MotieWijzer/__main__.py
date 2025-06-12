@@ -1,5 +1,11 @@
 """ Creates the command line interface. """
+import re
+from datetime import date
+
+from colorama import Fore, Back, Style
 from typer import Typer, Argument, Option
+
+from MotieWijzer.Business.Scraper import run_scraper
 
 app = Typer(
     add_completion=False,
@@ -13,9 +19,12 @@ app = Typer(
          "worden. Voorbeeld: 'python MotieWijzer download 2022-02 --eind 2024-06'"
 )
 def download(
-    start: str = Argument(
+    start: str = Option(
+        default="2008-09",
         help="Vanaf het begin van welke maand moties gedownload moeten worden. Bijvoorbeeld: '2022-02' betekent dat "
-             "alle moties vanaf begin februari 2022 gedownload worden."
+             "alle moties vanaf begin februari 2022 gedownload worden. Als dit argument leeg gelaten wordt zal de "
+             "eerste maand waarvoor motie metadata beschikbaar is gepakt worden, dat is '2008-09'. Let op het "
+             "downloaden van de moties kan meer dan een uur duren."
     ),
     eind: str = Option(
         default="",
@@ -24,7 +33,26 @@ def download(
              "alle moties tot de dag van vandaag gedownload worden."
     )
 ):
-    pass
+    start = re.fullmatch(r"(\d{4})-(\d{2})", start)
+    if start is None:
+        print(Fore.WHITE + Back.RED + "Start parameter is incorrect. Het moet eruit zien als '2022-02'." +
+              Style.RESET_ALL)
+        return
+    start = start.groups()
+    start_date = date(year=int(start[0]), month=int(start[1]), day=1)
+
+    if eind == "":
+        end_date = date.today()
+    else:
+        eind = re.fullmatch(r"(\d{4})-(\d{2})", eind)
+        if eind is None:
+            print(Fore.WHITE + Back.RED + "Eind parameter is incorrect. Het moet eruit zien als '2024-06'." +
+                  Style.RESET_ALL)
+            return
+        eind = eind.groups()
+        end_date = date(year=int(eind[0]), month=int(eind[1]), day=1)
+
+    run_scraper(start_date, end_date)
 
 @app.command(
     help="Start de MotieWijzer en bepaal welke partij in de tweede kamer het beste bij je past op basis van "
