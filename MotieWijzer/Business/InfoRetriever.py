@@ -57,3 +57,4 @@ def retrieve_info(start_date: date, end_date: date, regex: str):
     print(f"Aantal moties: {len(motions)}")
     print(f"Alle partijen: {', '.join(all_parties)}")
     print(f"(Deels) ontbrekende partijen: {', '.join(partially_missing_parties)}")
+    print()
