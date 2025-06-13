@@ -1,10 +1,11 @@
 """ Creates the command line interface. """
 import re
-from datetime import date
+from datetime import date, datetime
 
 from colorama import Fore, Back, Style
 from typer import Typer, Argument, Option
 
+from MotieWijzer.Business.InfoRetriever import retrieve_info
 from MotieWijzer.Business.Scraper import run_scraper
 
 app = Typer(
@@ -112,30 +113,59 @@ def laden(
 
 @app.command(
     help="Laat algemene informatie zien over de motie metadata, waaronder hoeveel moties er zijn, welke partijen er "
-         "zijn en welke partijen niet bestonden. Voorbeeld 'python MotieWijzer info --start 2022-02 --eind 2024-06 "
-         "--regex '.*(bus|trein|infrastructuur|mobiliteit|auto|fiets).*'"
+         "zijn en welke partijen deels niet bestonden (en bij hoeveel moties ze niet bestonden) en op welke dag de "
+         "eerste en laatste moties waren. Voorbeeld 'python MotieWijzer info --start 2022-02 --eind 2024-06 "
+         "--regex '.*(?i:bus|trein|infrastructuur|mobiliteit|auto|fiets).*'"
 )
 def info(
     start: str = Option(
-        default="",
-        help="Vanaf het begin van welke maand motie informatie getoond moet worden. Bijvoorbeeld: '2022-02' betekent "
-             "dat alle motie informatie vanaf begin februari 2022 getoond worden. Als dit argument leeg gelaten wordt "
+        default="2008-09-01",
+        help="Vanaf het begin van welke maand motie informatie getoond moet worden. Bijvoorbeeld: '2022-02-11' "
+             "betekent dat alle motie informatie vanaf 2022-02-11 getoond worden. Als dit argument leeg gelaten wordt "
              "zal alle motie informatie vanaf het begin van de metadata getoond worden."
     ),
     eind: str = Option(
         default="",
-        help="Tot het eind van welke maand motie informatie getoond moet worden. Bijvoorbeeld: '2024-06' betekent dat "
-             "alle motie informatie tot en met het einde van juni 2024 getoond worden. Als dit argument leeg gelaten "
-             "wordt zal alle motie informatie tot de dag van vandaag getoond worden."
+        help="Tot het eind van welke maand motie informatie getoond moet worden. Bijvoorbeeld: '2024-06-23' betekent "
+             "dat alle motie informatie tot en met het einde van 2024-06-23 getoond worden. Als dit argument leeg "
+             "gelaten wordt zal alle motie informatie tot de dag van vandaag getoond worden."
     ),
     regex: str = Option(
         default=".*",
-        help="Regex filtering die toegepast moet worden  op de motie titels. Hierdoor kun je moties selecteren die "
-             "over een specifiek thema gaan. Voorbeeld: '.*(bus|trein|infrastructuur|mobiliteit|auto|fiets).*' laat "
-             "voornamelijk moties zien die over vervoer gaan."
+        help="Regex filtering die toegepast moet worden op de motie titels. Hierdoor kun je moties selecteren die "
+             "over een specifiek thema gaan. Voorbeeld: '.*(?i:bus|trein|infrastructuur|mobiliteit|auto|fiets).*' laat "
+             "voornamelijk moties zien die over vervoer gaan. Regex queries zijn inprincipe case sensitive, tenzij "
+             "(?i) gebruikt wordt. De syntax voor regex staat beschreven in: https://docs.python.org/3/library/re.html"
     ),
 ):
-    pass
+    start = re.fullmatch(r"(\d{4})-(\d{2})-(\d{2})", start)
+    if start is None:
+        print(Fore.WHITE + Back.RED + "Start parameter is incorrect. Het moet eruit zien als '2022-02-11'." +
+              Style.RESET_ALL)
+        return
+    start = start.groups()
+    start_date = datetime(year=int(start[0]), month=int(start[1]), day=int(start[2]))
+
+    if eind == "":
+        today = date.today()
+        end_date = datetime(year=today.year, month=today.month, day=today.day)
+    else:
+        eind = re.fullmatch(r"(\d{4})-(\d{2})-(\d{2})", eind)
+        if eind is None:
+            print(Fore.WHITE + Back.RED + "Eind parameter is incorrect. Het moet eruit zien als '2024-06-23'." +
+                  Style.RESET_ALL)
+            return
+        eind = eind.groups()
+        end_date = datetime(year=int(eind[0]), month=int(eind[1]), day=int(eind[2]))
+
+    try:
+        re.compile(regex)
+    except:
+        print(Fore.WHITE + Back.RED + "De gegeven regex string voldoet niet aan het formaat." +
+              Style.RESET_ALL)
+        return
+
+    retrieve_info(start_date, end_date, regex)
 
 if __name__ == "__main__":
     app()

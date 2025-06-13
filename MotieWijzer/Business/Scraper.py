@@ -12,10 +12,8 @@ from tkapi.filter import Filter
 from tkapi.zaak import ZaakActorRelatieSoort, Zaak, ZaakSoort
 import pandas as pd
 
-from MotieWijzer.Business import DATA_DIRECTORY
+from MotieWijzer.Business import DATA_DIRECTORY, MOTIONS_DATA_PATH
 
-# The path to the file which stores the dataframe with all motions data in it.
-MOTIONS_DATA_PATH = "MotieWijzer/Data/motions.csv"
 
 def init_data_directory():
     """ Create the data directory if it does not exist yet. """
