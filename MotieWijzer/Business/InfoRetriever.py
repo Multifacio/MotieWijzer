@@ -16,6 +16,7 @@ def filter_motions(motions: DataFrame, start_date: date, end_date: date, regex: 
         (motions["VoteTime"] <= end_date)
     ]
 
+
 def get_all_parties(motions: DataFrame) -> List[str]:
     """ Get all parties that existed during any of the motions. """
     motions["Proponents"] = motions["Proponents"].astype(str)
@@ -29,6 +30,7 @@ def get_all_parties(motions: DataFrame) -> List[str]:
         all_parties |= set(row["Opponents"].split(","))
     return sorted(all_parties - {"nan"})
 
+
 def get_partially_missing_parties(motions: DataFrame, all_parties: List[str]) -> List[Tuple[str, int]]:
     """ Get all parties that did not exist during any of these motions. """
     all_parties = set(all_parties)
@@ -41,6 +43,7 @@ def get_partially_missing_parties(motions: DataFrame, all_parties: List[str]) ->
         partially_missing_parties.update(all_parties - existing_parties)
 
     return partially_missing_parties.most_common()
+
 
 def retrieve_info(start_date: date, end_date: date, regex: str):
     """ Run the info retriever. """
