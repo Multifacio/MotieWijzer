@@ -192,6 +192,12 @@ def run_scraper(start_date: date, end_date: date):
                 rows.append(row)
             progress_bar.next()
         progress_bar.finish()
-    data = pd.DataFrame(rows)
-    data.to_csv(MOTIONS_DATA_PATH, sep="|", index=False)
+    new_data = pd.DataFrame(rows)
+
+    if os.path.isfile(MOTIONS_DATA_PATH):
+        old_data = pd.read_csv(MOTIONS_DATA_PATH, sep="|")
+        old_data = old_data[~old_data["Id"].isin(new_data["Id"])]
+        new_data = pd.concat([old_data, new_data])
+
+    new_data.to_csv(MOTIONS_DATA_PATH, sep="|", index=False)
     print("Het downloaden van motie metadata is gelukt.")
