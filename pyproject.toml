@@ -11,6 +11,7 @@ dependencies = [
   "progress>=1.6",
   "python-dateutil>=2.9.0.post0",
   "pytz>=2025.2",
+  "requests>=2.32.4",
   "tkapi>=0.9.8",
   "typer>=0.16.0"
 ]

@@ -11,6 +11,7 @@ from typer import Typer, Argument, Option
 from MotieWijzer.Business import MOTIONS_DATA_PATH
 from MotieWijzer.Business.InfoRetriever import retrieve_info, filter_motions, get_all_parties
 from MotieWijzer.Business.Downloader import run_downloader
+from MotieWijzer.Business.Runner import run
 
 app = Typer(
     add_completion=False,
@@ -132,16 +133,21 @@ def start(
     motions = pd.read_csv(MOTIONS_DATA_PATH, sep="|")
     motions = filter_motions(motions, start_date, end_date, regex)
     all_parties = get_all_parties(motions)
-    include = inclusief.split(",")
-    missing_parties = [p for p in include if p not in all_parties]
-    if missing_parties:
-        missing_parties = ", ".join(missing_parties)
-        print(Fore.WHITE + Back.RED + f"De volgende partijen in de inclusief parameter bestaan niet: {missing_parties}" +
-              Style.RESET_ALL)
+    if inclusief == "":
+        included_parties = all_parties.copy()
+    else:
+        included_parties = inclusief.split(",")
+        missing_parties = [p for p in included_parties if p not in all_parties]
+        if missing_parties:
+            missing_parties = ", ".join(missing_parties)
+            print(Fore.WHITE + Back.RED + f"De volgende partijen in de inclusief parameter bestaan niet: "
+                                          f"{missing_parties}" + Style.RESET_ALL)
         return
 
     if seed < 0:
-        seed = random.randint(0, sys.maxsize)
+        seed = random.randint(0, 2 ** 31)
+
+    run(motions, start_date, end_date, regex, included_parties, seed)
 
 
 @app.command(
