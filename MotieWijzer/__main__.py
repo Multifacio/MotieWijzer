@@ -1,17 +1,18 @@
 """ Creates the command line interface. """
-import re
-import sys
+import os
+from collections import Counter as counter
 from datetime import date, datetime
 import random
+import re
 
 import pandas as pd
 from colorama import Fore, Back, Style
 from typer import Typer, Argument, Option
 
-from MotieWijzer.Business import MOTIONS_DATA_PATH
+from MotieWijzer.Business import MOTIONS_DATA_PATH, DATA_DIRECTORY
 from MotieWijzer.Business.InfoRetriever import retrieve_info, filter_motions, get_all_parties
 from MotieWijzer.Business.Downloader import run_downloader
-from MotieWijzer.Business.Runner import run
+from MotieWijzer.Business.Runner import run, load
 
 app = Typer(
     add_completion=False,
@@ -147,7 +148,7 @@ def start(
     if seed < 0:
         seed = random.randint(0, 2 ** 31)
 
-    run(motions, start_date, end_date, regex, included_parties, seed)
+    run(motions, start_date, end_date, regex, included_parties, seed, counter(), counter(), 0)
 
 
 @app.command(
@@ -159,7 +160,13 @@ def laden(
         help="De naam van het opgeslagen profiel dat geladen wordt. Je kunt kiezen uit: ''"
     )
 ):
-    pass
+    file_name = f"{DATA_DIRECTORY}/{profiel}.json"
+    if not os.path.isfile(file_name):
+        print(Fore.WHITE + Back.RED + f"De file '{file_name}' bestaat niet" + Style.RESET_ALL)
+        return
+
+    load(file_name)
+
 
 @app.command(
     help="Laat algemene informatie zien over de motie metadata, waaronder hoeveel moties er zijn, welke partijen er "
