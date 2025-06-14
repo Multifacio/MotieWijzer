@@ -8,12 +8,13 @@ from pandas import DataFrame
 from MotieWijzer.Business import MOTIONS_DATA_PATH
 
 def filter_motions(motions: DataFrame, start_date: date, end_date: date, regex: str):
-    """ Filter the motions on date and the title on regex. """
+    """ Filter the motions on date and the title on regex and to have at least any opponent. """
     motions["VoteTime"] = pd.to_datetime(motions["VoteTime"].str.slice(0, 10))
     return motions[
         motions["Subject"].str.match(regex, case=False) &
         (motions["VoteTime"] >= start_date) &
-        (motions["VoteTime"] <= end_date)
+        (motions["VoteTime"] <= end_date) &
+        (motions["NumOpponents"] > 0)
     ]
 
 
@@ -55,6 +56,7 @@ def retrieve_info(start_date: date, end_date: date, regex: str):
     all_parties = get_all_parties(motions)
     partially_missing_parties = get_partially_missing_parties(motions, all_parties)
     partially_missing_parties = [f"{p} ({c})" for p, c in partially_missing_parties]
+    print()
     print(f"Eerste motie: {first_date}")
     print(f"Laatste motie: {last_date}")
     print(f"Aantal moties: {len(motions)}")
