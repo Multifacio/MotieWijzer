@@ -66,7 +66,7 @@ def download(
          "de stemming van de motie en jij wel voor/tegen de motie bent wordt beschouwd dat de afwezige partij "
          "tegenstrijdig met jou heeft gestemd. Als een partij niet bestond bij de stemming telt het niet mee voor "
          "zijn score. Voorbeeld 'python MotieWijzer start --start 2022-02 --eind 2024-06 "
-         "--substitutie '{\"GLPVDA\": \"GL\", \"Omtzigt\": \"CDA\"}'"
+         "--inclusief 'VVD,CDA,GroenLinks-PvdA'"
 )
 def start(
     start: str = Option(
@@ -142,7 +142,7 @@ def start(
             missing_parties = ", ".join(missing_parties)
             print(Fore.WHITE + Back.RED + f"De volgende partijen in de inclusief parameter bestaan niet: "
                                           f"{missing_parties}" + Style.RESET_ALL)
-        return
+            return
 
     if seed < 0:
         seed = random.randint(0, 2 ** 31)
