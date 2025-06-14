@@ -1,5 +1,6 @@
 """ Randomly selects a motion (Dutch: motie) in the new way. """
 import json
+import os
 import re
 import subprocess
 from collections import Counter as counter
@@ -42,9 +43,9 @@ def show_additional_motion_info(motion: pd.Series):
     num_proponents = motion["NumProponents"]
     num_opponents = motion["NumOpponents"]
     num_absentees = motion["NumAbsentees"]
-    proponents = motion["Proponents"].replace(",", ", ")
-    opponents = motion["Opponents"].replace(",", ", ")
-    absentees = motion["Absentees"].replace("nan", "").replace(",", ", ")
+    proponents = str(motion["Proponents"]).replace(",", ", ")
+    opponents = str(motion["Opponents"]).replace(",", ", ")
+    absentees = str(motion["Absentees"]).replace("nan", "").replace(",", ", ")
     petitioners = motion["Petitioners"].replace(",", ", ")
 
     print(Back.GREEN + f"Motie titel: {subject}" + Style.RESET_ALL)
@@ -119,8 +120,6 @@ def ask_user_input_motion(motion: pd.Series, scores: Counter[str], totals: Count
                           start_date: date, end_date: date, regex: str, seed: int, index: int) -> Tuple[Counter[str], Counter[str]]:
     """ Ask the user what to do with the motion. """
     while True:
-        subject = motion["Subject"]
-        print(Back.GREEN + f"Motie titel: {subject}" + Style.RESET_ALL)
         print("Kies het volgende: ")
         print("'i': Om extra informatie over de motie te laten zien.")
         print("'o': Opnieuw openen van de motie in PDF.")
@@ -151,7 +150,6 @@ def ask_user_input_no_motion(scores: Counter[str], totals: Counter[str], include
                              end_date: date, regex: str, seed: int, index: int) -> Tuple[Counter[str], Counter[str]]:
     """ Ask the user what to do after all motions are displayed. """
     while True:
-        print(Back.YELLOW + f"Er zijn geen nieuwe moties meer." + Style.RESET_ALL)
         print("Kies het volgende: ")
         print("'r': Overeenkomst tot nu toe laten zien met de verschillende partijen.")
         print("'s': Sla de resultaten zo ver op in een profiel.")
@@ -170,13 +168,15 @@ def run(motions: DataFrame, start_date: date, end_date: date, regex: str, includ
     motions = motions[index:]
     print()
     for _, motion in motions.iterrows():
+        subject = motion["Subject"]
+        print(Back.GREEN + f"Motie titel: {subject}" + Style.RESET_ALL)
         show_motion(motion)
         scores, totals = ask_user_input_motion(motion, scores, totals, included_parties, start_date, end_date, regex,
                                                seed, index)
         index += 1
 
-    while True:
-        ask_user_input_no_motion(scores, totals, included_parties, start_date, end_date, regex, seed, index)
+    print(Back.YELLOW + f"Er zijn geen nieuwe moties meer." + Style.RESET_ALL)
+    ask_user_input_no_motion(scores, totals, included_parties, start_date, end_date, regex, seed, index)
 
 
 def load(file_name: str):
