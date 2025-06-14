@@ -1,12 +1,16 @@
 """ Creates the command line interface. """
 import re
+import sys
 from datetime import date, datetime
+import random
 
+import pandas as pd
 from colorama import Fore, Back, Style
 from typer import Typer, Argument, Option
 
-from MotieWijzer.Business.InfoRetriever import retrieve_info
-from MotieWijzer.Business.Scraper import run_scraper
+from MotieWijzer.Business import MOTIONS_DATA_PATH
+from MotieWijzer.Business.InfoRetriever import retrieve_info, filter_motions, get_all_parties
+from MotieWijzer.Business.Downloader import run_downloader
 
 app = Typer(
     add_completion=False,
@@ -53,7 +57,7 @@ def download(
         eind = eind.groups()
         end_date = date(year=int(eind[0]), month=int(eind[1]), day=1)
 
-    run_scraper(start_date, end_date)
+    run_downloader(start_date, end_date)
 
 @app.command(
     help="Start de MotieWijzer en bepaal welke partij in de tweede kamer het beste bij je past op basis van "
@@ -65,7 +69,7 @@ def download(
 )
 def start(
     start: str = Option(
-        default="",
+        default="2008-09-01",
         help="Vanaf welke dag moties getoond moeten worden. Bijvoorbeeld: '2022-02-11' betekent dat alle moties vanaf "
              "11 februari 2022 getoond worden. Als dit argument leeg gelaten wordt zullen alle moties vanaf het begin "
              "van de metadata getoond worden."
@@ -84,7 +88,7 @@ def start(
              "tenzij (?i) gebruikt wordt. De syntax voor regex staat beschreven in: "
              "https://docs.python.org/3/library/re.html"
     ),
-    include: str = Option(
+    inclusief: str = Option(
         default="",
         help="Van welke partijen bijgehouden moeten worden hoeveel overeenkomst ze met je hebben gescheiden door een "
              "komma. Als dit argument leeg gelaten wordt zullen van alle partijen de overeenkomst bijgehouden worden. "
@@ -98,7 +102,47 @@ def start(
              "willekeurige random seed gepakt worden."
     )
 ):
-    pass
+    start = re.fullmatch(r"(\d{4})-(\d{2})-(\d{2})", start)
+    if start is None:
+        print(Fore.WHITE + Back.RED + "Start parameter is incorrect. Het moet eruit zien als '2022-02-11'." +
+              Style.RESET_ALL)
+        return
+    start = start.groups()
+    start_date = datetime(year=int(start[0]), month=int(start[1]), day=int(start[2]))
+
+    if eind == "":
+        today = date.today()
+        end_date = datetime(year=today.year, month=today.month, day=today.day)
+    else:
+        eind = re.fullmatch(r"(\d{4})-(\d{2})-(\d{2})", eind)
+        if eind is None:
+            print(Fore.WHITE + Back.RED + "Eind parameter is incorrect. Het moet eruit zien als '2024-06-23'." +
+                  Style.RESET_ALL)
+            return
+        eind = eind.groups()
+        end_date = datetime(year=int(eind[0]), month=int(eind[1]), day=int(eind[2]))
+
+    try:
+        re.compile(regex)
+    except:
+        print(Fore.WHITE + Back.RED + "De gegeven regex string voldoet niet aan het formaat." +
+              Style.RESET_ALL)
+        return
+
+    motions = pd.read_csv(MOTIONS_DATA_PATH, sep="|")
+    motions = filter_motions(motions, start_date, end_date, regex)
+    all_parties = get_all_parties(motions)
+    include = inclusief.split(",")
+    missing_parties = [p for p in include if p not in all_parties]
+    if missing_parties:
+        missing_parties = ", ".join(missing_parties)
+        print(Fore.WHITE + Back.RED + f"De volgende partijen in de inclusief parameter bestaan niet: {missing_parties}" +
+              Style.RESET_ALL)
+        return
+
+    if seed < 0:
+        seed = random.randint(0, sys.maxsize)
+
 
 @app.command(
     help="Ga verder met de MotieWijzer vanaf een opgeslagen profiel. Voorbeeld: 'python MotieWijzer laden profiel_naam'"
