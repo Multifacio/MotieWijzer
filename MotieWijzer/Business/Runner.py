@@ -86,6 +86,8 @@ def ask_user_input_motion(motion: pd.Series, scores: Counter[str], totals: Count
         -> Tuple[Counter[str], Counter[str]]:
     """ Ask the user what to do with the motion. """
     while True:
+        subject = motion["Subject"]
+        print(Back.GREEN + f"Motie titel: {subject}" + Style.RESET_ALL)
         print("Kies het volgende: ")
         print("'i': Om extra informatie over de motie te laten zien.")
         print("'o': Opnieuw openen van de motie in PDF.")
@@ -109,6 +111,19 @@ def ask_user_input_motion(motion: pd.Series, scores: Counter[str], totals: Count
             return update_scores(motion, False, scores, totals)
 
 
+def ask_user_input_no_motion(scores: Counter[str], totals: Counter[str], included_parties: List[str])\
+        -> Tuple[Counter[str], Counter[str]]:
+    """ Ask the user what to do after all motions are displayed. """
+    while True:
+        print(Back.YELLOW + f"Er zijn geen nieuwe moties meer." + Style.RESET_ALL)
+        print("Kies het volgende: ")
+        print("'r': Overeenkomst tot nu toe laten zien met de verschillende partijen.")
+        user_input = input()
+        print()
+        if user_input == "r":
+            show_result(scores, totals, included_parties)
+
+
 def run(motions: DataFrame, start_date: date, end_date: date, regex: str, included_parties: List[str], seed: int):
     """ Run the random motion selecter. """
     motions = motions.sample(frac=1.0, random_state=seed)  # Shuffle the motions in a random order.
@@ -118,7 +133,8 @@ def run(motions: DataFrame, start_date: date, end_date: date, regex: str, includ
     # Loop over all motions.
     print()
     for _, motion in motions.iterrows():
-        subject = motion["Subject"]
-        print(Back.GREEN + f"Motie titel: {subject}" + Style.RESET_ALL)
         show_motion(motion)
         scores, totals = ask_user_input_motion(motion, scores, totals, included_parties)
+
+    while True:
+        ask_user_input_no_motion(scores, totals, included_parties)
