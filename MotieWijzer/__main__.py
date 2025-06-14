@@ -59,37 +59,37 @@ def download(
     help="Start de MotieWijzer en bepaal welke partij in de tweede kamer het beste bij je past op basis van "
          "willekeurige moties. Let op: Je moet eerst alle motie metadata downloaden. Als een partij afwezig was bij "
          "de stemming van de motie en jij wel voor/tegen de motie bent wordt beschouwd dat de afwezige partij "
-         "tegenstrijdig met jou heeft gestemd. Voorbeeld 'python MotieWijzer start --start 2022-02 --eind 2024-06 "
+         "tegenstrijdig met jou heeft gestemd. Als een partij niet bestond bij de stemming telt het niet mee voor "
+         "zijn score. Voorbeeld 'python MotieWijzer start --start 2022-02 --eind 2024-06 "
          "--substitutie '{\"GLPVDA\": \"GL\", \"Omtzigt\": \"CDA\"}'"
 )
 def start(
     start: str = Option(
         default="",
-        help="Vanaf het begin van welke maand moties getoond moeten worden. Bijvoorbeeld: '2022-02' betekent dat "
-             "alle moties vanaf begin februari 2022 getoond worden. Als dit argument leeg gelaten wordt zullen alle "
-             "moties vanaf het begin van de metadata getoond worden."
+        help="Vanaf welke dag moties getoond moeten worden. Bijvoorbeeld: '2022-02-11' betekent dat alle moties vanaf "
+             "11 februari 2022 getoond worden. Als dit argument leeg gelaten wordt zullen alle moties vanaf het begin "
+             "van de metadata getoond worden."
     ),
     eind: str = Option(
         default="",
-        help="Tot het eind van welke maand moties getoond moeten worden. Bijvoorbeeld: '2024-06' betekent dat alle "
-             "moties tot en met het einde van juni 2024 getoond worden. Als dit argument leeg gelaten wordt zullen "
-             "alle moties tot de dag van vandaag getoond worden."
-    ),
-    substitutie: str = Option(
-        default="{}",
-        help="Als een partij niet bestond ten tijde van de motie dan wordt gekeken naar een alternatieve partij. Als "
-             "geen substitutie vermeld wordt en de partij niet bestond ten tijde van een motie dan wordt beschouw dat "
-             "die partij tegenstrijdig stemt met jou. Hetzelfde geldt ook als zowel die partij als de substitutie "
-             "partij niet bestonden op het moment dat de motie ingediend werd. "
-             "Voorbeeld: {\"GLPVDA\": \"GL\", \"Omtzigt\": \"CDA\"} betekent dat zolang GLPVDA niet bestaat wordt "
-             "aangenomen dat GLPVDA hetzelfde had gestemd als GL. Idem dito wordt beschouwd dat Omtzigt hetzelfde "
-             "stemt als CDA zolang Omtzigt geen aparte partij heeft."
+        help="Tot en met welke dag moties getoond moeten worden. Bijvoorbeeld: '2024-06-23' betekent dat alle moties "
+             "tot en met 23 juni 2024 getoond worden. Als dit argument leeg gelaten wordt zullen alle moties tot en "
+             "met de dag van vandaag getoond worden."
     ),
     regex: str = Option(
         default=".*",
-        help="Regex filtering die toegepast moet worden op de motie titels. Hierdoor kun je moties selecteren die over "
-             "een specifiek thema gaan. Voorbeeld: '.*(bus|trein|infrastructuur|mobiliteit|auto|fiets).*' laat "
-             "voornamelijk moties zien die over vervoer gaan."
+        help="Regex filtering die toegepast moet worden op de motie titels. Hierdoor kun je moties selecteren die "
+             "over een specifiek thema gaan. Voorbeeld: '.*(?i:bus|trein|infrastructuur|mobiliteit|auto|fiets).*' laat "
+             "voornamelijk moties zien die over vervoer gaan. Regex queries zijn in principe hoofdlettergevoelig, "
+             "tenzij (?i) gebruikt wordt. De syntax voor regex staat beschreven in: "
+             "https://docs.python.org/3/library/re.html"
+    ),
+    include: str = Option(
+        default="",
+        help="Van welke partijen bijgehouden moeten worden hoeveel overeenkomst ze met je hebben gescheiden door een "
+             "komma. Als dit argument leeg gelaten wordt zullen van alle partijen de overeenkomst bijgehouden worden. "
+             "Voorbeeld: 'VVD,CDA,GroenLinks-PvdA' betekent dat alleen je overeenkomst met de VVD, CDA en "
+             "GroenLinks-PVDA getoond wordt."
     ),
     seed: int = Option(
         default=-1,
@@ -120,22 +120,23 @@ def laden(
 def info(
     start: str = Option(
         default="2008-09-01",
-        help="Vanaf het begin van welke maand motie informatie getoond moet worden. Bijvoorbeeld: '2022-02-11' "
-             "betekent dat alle motie informatie vanaf 2022-02-11 getoond worden. Als dit argument leeg gelaten wordt "
-             "zal alle motie informatie vanaf het begin van de metadata getoond worden."
+        help="Vanaf welke dag motie informatie getoond moet worden. Bijvoorbeeld: '2022-02-11' betekent dat alle "
+             "motie informatie vanaf 2022-02-11 getoond worden. Als dit argument leeg gelaten wordt zal alle motie "
+             "informatie vanaf het begin van de metadata getoond worden."
     ),
     eind: str = Option(
         default="",
-        help="Tot het eind van welke maand motie informatie getoond moet worden. Bijvoorbeeld: '2024-06-23' betekent "
-             "dat alle motie informatie tot en met het einde van 2024-06-23 getoond worden. Als dit argument leeg "
-             "gelaten wordt zal alle motie informatie tot de dag van vandaag getoond worden."
+        help="Tot en met welke dag motie informatie getoond moet worden. Bijvoorbeeld: '2024-06-23' betekent dat alle "
+             "motie informatie tot en met 2024-06-23 getoond worden. Als dit argument leeg gelaten wordt zal alle "
+             "motie informatie tot en met de dag van vandaag getoond worden."
     ),
     regex: str = Option(
         default=".*",
         help="Regex filtering die toegepast moet worden op de motie titels. Hierdoor kun je moties selecteren die "
              "over een specifiek thema gaan. Voorbeeld: '.*(?i:bus|trein|infrastructuur|mobiliteit|auto|fiets).*' laat "
-             "voornamelijk moties zien die over vervoer gaan. Regex queries zijn inprincipe case sensitive, tenzij "
-             "(?i) gebruikt wordt. De syntax voor regex staat beschreven in: https://docs.python.org/3/library/re.html"
+             "voornamelijk moties zien die over vervoer gaan. Regex queries zijn in principe hoofdlettergevoelig, "
+             "tenzij (?i) gebruikt wordt. De syntax voor regex staat beschreven in: "
+             "https://docs.python.org/3/library/re.html"
     ),
 ):
     start = re.fullmatch(r"(\d{4})-(\d{2})-(\d{2})", start)
