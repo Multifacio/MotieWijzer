@@ -1,4 +1,4 @@
-""" The Scraper is responsible for downloading all motion (Dutch: motie) metadata in a given date range. """
+""" The Downloader is responsible for downloading all motion (Dutch: motie) metadata in a given date range. """
 import os
 from datetime import date
 from typing import Any, Dict, List, Tuple
@@ -21,7 +21,7 @@ def init_data_directory():
         os.mkdir(DATA_DIRECTORY)
 
 def get_year_month_combinations(start_date: date, end_date: date) -> List[Tuple[str, str]]:
-    """ Get all year month combinations for which we scrap all motions (Dutch: moties).
+    """ Get all year month combinations for which we download all motions (Dutch: moties).
 
     :return: A list of tuples where the first element is the year number (expressed as string) and the second element is
         the month number (expressed as string) for which we extract all motions.
@@ -35,11 +35,11 @@ def get_year_month_combinations(start_date: date, end_date: date) -> List[Tuple[
     return year_month_combinations
 
 
-def scrap_motions(year: str, month: str) -> List[Besluit]:
-    """ Scrap all motions using the TkApi for a given year and month.
+def download_motions(year: str, month: str) -> List[Besluit]:
+    """ Download all motions using the TkApi for a given year and month.
 
-    :param year: The year for which the motions are scrapped.
-    :param month: The month for which the motions are scrapped.
+    :param year: The year for which the motions are downloaded.
+    :param month: The month for which the motions are downloaded.
     :return: A list of Besluit objects from the TkApi which represent the motions.
     """
     api = tkapi.TKApi()
@@ -53,7 +53,7 @@ def scrap_motions(year: str, month: str) -> List[Besluit]:
 def parse_basic_info(motion: Besluit, zaak: Zaak) -> Dict[str, Any]:
     """ Parse the basic information for a motion (Dutch: motie), which are the Id, Subject, VoteTime, Url and Size.
 
-    :param motion: The scrapped motion from which the basic information is extracted.
+    :param motion: The motion from which the basic information is extracted.
     :param zaak: The zaak object corresponding to the motion.
     :return: This information parsed or an empty dictionary if it wasn't discussed in the Tweede Kamer, if it wasn't a
         motion, if there were no documents or if the motion was neither accepted (Dutch: aangenomen) or rejected
@@ -90,7 +90,7 @@ def parse_vote_info(motion: Besluit) -> Dict[str, Any]:
     """ Parse voting info, which are how many members of the Tweede Kamer voted in favor, against and did not vote.
     Also parse which parties voted in favor, against and did not vote.
 
-    :param motion: The scrapped motion from which the basic information is extracted.
+    :param motion: The motion from which the basic information is extracted.
     :return: The parsed voting data or empty if odd voting data is encountered.
     """
     num_proponents = 0
@@ -140,10 +140,10 @@ def parse_petitioners_info(zaak: Zaak) -> Dict[str, Any]:
 
 
 def parse_motion(motion: Besluit) -> Dict[str, Any]:
-    """ Parse the scraped data for a single motion (Dutch: motie) into a Dictionary mapping the column names to their
+    """ Parse the data for a single motion (Dutch: motie) into a Dictionary mapping the column names to their
     respective values.
 
-    :param motion: A single scrapped motion (Dutch: motie).
+    :param motion: A single motion (Dutch: motie).
     :return: A dictionary mapping the following column names to the following values:
         - Id: The id of the document of the motion.
         - Subject: The subject of the motion.
@@ -173,13 +173,13 @@ def parse_motion(motion: Besluit) -> Dict[str, Any]:
     return {**basic_info, **vote_info, **petitioners_info}
 
 
-def run_scraper(start_date: date, end_date: date):
-    """ Run the scraper. """
+def run_downloader(start_date: date, end_date: date):
+    """ Run the downloader. """
     rows = []
     init_data_directory()
     year_month_combinations = get_year_month_combinations(start_date, end_date)
     for year, month in year_month_combinations:
-        motions = scrap_motions(year, month)
+        motions = download_motions(year, month)
         if not motions:
             continue
         progress_bar = Bar(f"Moties voor {year}-{month} geparsed: ", max=len(motions))
