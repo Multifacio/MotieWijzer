@@ -16,9 +16,11 @@ from MotieWijzer.Business.Runner import run, load
 
 
 profile_names = []
-for file in os.listdir(DATA_DIRECTORY):
-    if file.endswith(".json"):
-        profile_names.append(file[:-5])
+if os.path.isdir(DATA_DIRECTORY):
+    for file in os.listdir(DATA_DIRECTORY):
+        if file.endswith(".json"):
+            profile_names.append(file[:-5])
+            
 if profile_names:
     profile_names = "', '".join(profile_names)
     profile_names = f"'{profile_names}'"
