@@ -3,6 +3,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 from collections import Counter as counter
 from datetime import date, datetime
 from sys import platform
@@ -31,7 +32,7 @@ def show_motion(motion: pd.Series):
     if platform == "linux" or platform == "linux2":
         subprocess.Popen([f"xdg-open {PDF_OUTPUT_FILE_PATH}"], shell=True)
     else:
-        subprocess.Popen([PDF_OUTPUT_FILE_PATH], shell=True)
+        os.startfile(f"{sys.path[0]}/{PDF_OUTPUT_FILE_PATH}")
 
 
 def show_additional_motion_info(motion: pd.Series):
