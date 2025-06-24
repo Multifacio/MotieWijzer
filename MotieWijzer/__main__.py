@@ -36,7 +36,7 @@ app = Typer(
 
 @app.command(
     help="Download alle motie metadata. Deze stap moet als eerste uitgevoerd worden, voordat de tool gebruikt kan "
-         "worden. Voorbeeld: 'python MotieWijzer download 2022-02 --eind 2024-06'"
+         "worden. Voorbeeld: 'python MotieWijzer download --start 2022-02 --eind 2024-06'"
 )
 def download(
     start: str = Option(
