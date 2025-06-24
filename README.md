@@ -51,6 +51,11 @@ Als je de MotieWijzer uitvoert zul je alle (gefilterde) moties in willekeurige v
 - 's' om de resultaten van de MotieWijzer op te slaan zo ver in een bestand. Later kun je deze weer laden via `python MotieWijzer laden $naam`, waarbij $naam de naam is waaronder je de resultaten hebt opgeslagen.
 
 ### Motie info krijgen
+Om algemene informatie te tonen over de moties de je hebt kun je het volgende commando uitvoeren:
+`python MotieWijzer info`
+Dit commando toont de datum van de eerste en laatste motie, het aantal moties die er zijn en welke partijen bestonden tijdens een van deze moties. Bovendien toont het de (deels) ontbrekende partijen, dat zijn partijen die niet bestonden tijdens een van deze moties en bij hoeveel moties ze niet bestonden (dit is anders dan afwezig zijn bij stemming).
+
+Om alleen specifieke informatie te krijgen over moties over een bepaald thema kun je de regex parameter toevoegen, e.g. `python MotieWijzer info --regex .*(?i:bus|trein|infrastructuur|mobiliteit|auto|fiets).*` toont alleen moties die over vervoer gaan (omdat ze een van deze woorden in hun onderwerp hebben). Voor meer informatie over dit commando kun `python MotieWijzer info --help` uitvoeren.
 
 ## Credits
 
