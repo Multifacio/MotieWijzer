@@ -58,4 +58,7 @@ Dit commando toont de datum van de eerste en laatste motie, het aantal moties di
 Om alleen specifieke informatie te krijgen over moties over een bepaald thema kun je de regex parameter toevoegen, e.g. `python MotieWijzer info --regex .*(?i:bus|trein|infrastructuur|mobiliteit|auto|fiets).*` toont alleen moties die over vervoer gaan (omdat ze een van deze woorden in hun onderwerp hebben). Voor meer informatie over dit commando kun `python MotieWijzer info --help` uitvoeren.
 
 ## Credits
+Voor dit project is gebruik gemaakt van:
+- tkapi: https://github.com/openkamer/tkapi
+- En indirect het Open Data Portaal van de Tweede Kamer: https://opendata.tweedekamer.nl/github
 
